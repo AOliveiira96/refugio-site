@@ -177,6 +177,33 @@
     });
   }
 
+  /* ---------- Abrir sempre no topo ----------
+     Se o endereço tiver #algo (ex.: #contato), o navegador pula direto para essa seção,
+     inclusive ao recarregar a página. Aqui o site rola até a seção uma vez e depois
+     tira o #algo do endereço, para a próxima abertura começar no topo. */
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual"; // não lembrar a rolagem antiga
+  function limparHash() { history.replaceState(null, "", location.pathname + location.search); }
+  window.addEventListener("load", () => {
+    if (location.hash) {
+      const alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (alvo) alvo.scrollIntoView();
+      limparHash();
+    } else {
+      window.scrollTo(0, 0);
+    }
+  });
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest('a[href*="#"]');
+    if (!link) return;
+    const url = new URL(link.href);
+    if (url.pathname !== location.pathname || !url.hash) return; // link para outra página: deixa normal
+    const alvo = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+    if (!alvo) return;
+    e.preventDefault();
+    alvo.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    limparHash();
+  });
+
   /* ---------- Ano no rodapé ---------- */
   $$("[data-ano]").forEach(el => el.textContent = new Date().getFullYear());
 })();
